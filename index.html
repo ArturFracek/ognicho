@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Zgadnij piosenkę 🔥</title>
+<style>
+  :root {
+    --bg: #1a0e08;
+    --ember: #ff7a29;
+    --ember-dark: #c9531a;
+    --maroon: #7a1f2b;
+    --maroon-light: #9c2c3a;
+    --gold: #ffb84d;
+    --text: #fbe8d8;
+    --text-dim: #d8b8a0;
+    --danger: #ff5252;
+    --success: #6fcf6f;
+    --border: rgba(0, 0, 0, 0.45);
+    --wood-1: #6b4529;
+    --wood-2: #4a2d18;
+    --wood-3: #2e1a0d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -8%, rgba(255, 150, 60, 0.16), transparent 60%),
+      repeating-linear-gradient(180deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 2px, transparent 2px, transparent 140px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 1px, transparent 7px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 50px, rgba(255,255,255,0.025) 51px, transparent 90px),
+      linear-gradient(180deg, var(--wood-1), var(--wood-2) 55%, var(--wood-3));
+    background-attachment: fixed;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.45;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 12px 16px 20px;
+  }
+
+  header.app-header {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 4px 0 2px;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(255, 122, 41, 0.55);
+    letter-spacing: 0.5px;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  .kbd-hint {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin: 6px 0 0;
+  }
+
+  kbd {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.85em;
+    font-family: inherit;
+    color: var(--gold);
+  }
+
+  .panel {
+    position: relative;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 8px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, transparent 2px, transparent 60px, rgba(255,255,255,0.03) 62px, transparent 110px),
+      linear-gradient(155deg, #5c3c22, #402813 65%, #2e1a0d);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 6px 16px rgba(0,0,0,0.45);
+  }
+
+  .panel h2 {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .scores-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .scores-header h2 { margin: 0; }
+
+  #killstreak-toast {
+    position: fixed;
+    left: 50%;
+    top: 14%;
+    transform: translate(-50%, -12px);
+    z-index: 50;
+    padding: 14px 26px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--ember), var(--maroon));
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 800;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.55), 0 0 40px rgba(255,122,41,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    white-space: nowrap;
+  }
+
+  #killstreak-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #1c0f08;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  input[type="text"]:focus {
+    outline: 2px solid var(--ember);
+  }
+
+  .loaded-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .loaded-bar span {
+    font-size: 0.85rem;
+    color: var(--success);
+    font-weight: 600;
+  }
+
+  .btn-link {
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    text-decoration: underline;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 2px;
+    cursor: pointer;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    transition: transform 0.08s ease, filter 0.15s ease;
+  }
+
+  button:active { transform: scale(0.97); }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(0.4);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    background: linear-gradient(180deg, var(--ember), var(--ember-dark));
+    color: #fff;
+    box-shadow: 0 3px 0 #8a3a10, 0 5px 12px rgba(255,122,41,0.35);
+  }
+
+  .btn-primary:not(:disabled):hover { filter: brightness(1.08); }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 11px;
+    font-size: 0.88rem;
+    background: linear-gradient(180deg, #2c1a0f, #1c0f08);
+    color: var(--text);
+    border: 1px solid var(--border);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .btn-row button { flex: 1; }
+
+  .status {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-top: 8px;
+    display: none;
+  }
+
+  .status.show { display: block; }
+  .status.info { background: rgba(255, 184, 77, 0.14); color: var(--gold); border: 1px solid rgba(255,184,77,0.3); }
+  .status.error { background: rgba(255, 82, 82, 0.14); color: #ff8a8a; border: 1px solid rgba(255,82,82,0.35); }
+  .status.success { background: rgba(111, 207, 111, 0.14); color: var(--success); border: 1px solid rgba(111,207,111,0.3); }
+
+  .main-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #player-wrap {
+    position: relative;
+    width: 84px;
+    height: 47px;
+    margin: 0 auto 6px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  #player-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, var(--maroon-light), var(--bg));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    z-index: 2;
+    transition: opacity 0.2s ease;
+  }
+
+  #player-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .pool-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pool-info {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  .btn-reset-game {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+  }
+
+  .nav-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-row button { flex: 1; }
+
+  .timer-bar-wrap {
+    width: 100%;
+    height: 16px;
+    background: #1c0f08;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin: 8px 0 3px;
+  }
+
+  .timer-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--ember));
+    transition: width 0.1s linear;
+  }
+
+  .timer-label {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .btn-startstop {
+    width: 100%;
+    padding: 13px;
+    font-size: 0.98rem;
+    background: #1c0f08;
+    color: var(--gold);
+    border: 2px solid var(--ember-dark);
+  }
+
+  .btn-startstop.playing {
+    background: linear-gradient(180deg, var(--ember), var(--ember-dark));
+    color: #fff;
+    box-shadow: 0 0 16px rgba(255,122,41,0.5);
+  }
+
+  .answer-card {
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    background: #1c0f08;
+    border: 1px dashed var(--border);
+    margin-top: 8px;
+    min-height: 20px;
+  }
+
+  .answer-card.placeholder {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  .answer-title {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .trivia-card {
+    display: none;
+    text-align: left;
+    padding: 9px 11px;
+    border-radius: 10px;
+    background: #1c0f08;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .trivia-card.show { display: block; }
+  .trivia-card div + div { margin-top: 6px; }
+
+  .teams {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .team-card {
+    background: linear-gradient(155deg, #4a2d18, #2e1a0d);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px;
+  }
+
+  .team-name {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--gold);
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 4px 2px;
+    margin-bottom: 6px;
+  }
+
+  .team-name:focus { outline: none; border-bottom-color: var(--ember); }
+
+  .team-score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .team-score {
+    font-size: 1.4rem;
+    font-weight: 800;
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .score-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+    background: #1c0f08;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+  }
+
+  .score-btn.plus { color: var(--success); }
+  .score-btn.minus { color: var(--danger); }
+
+  .reset-scores {
+    margin-top: 10px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 8px;
+    width: 100%;
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  /* Soundboard na stałe w prawej kolumnie (nie modal) — nagłówek+wyniki+reset
+     mają stały rozmiar, a siatka przycisków rośnie i przewija się SAMA w
+     dostępnej przestrzeni, żeby cała strona nadal mieściła się bez scrolla. */
+  .soundboard-inline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 12px 0 10px;
+    flex: 0 0 auto;
+  }
+
+  .soundboard-inline-header h2 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn-soundboard-stop {
+    background: var(--maroon);
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .soundboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 110px);
+    gap: 14px 10px;
+    justify-content: center;
+    align-content: start;
+  }
+
+  .soundboard-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Własna, czytelna etykieta — tekst wewnątrz osadzonego widgetu myinstants
+     to domyślny niebieski link, słabo widoczny na ciemnym drewnianym tle,
+     a nie mamy jak go przestylować (to obca domena). */
+  .soundboard-caption {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    line-height: 1.25;
+    min-height: 2.1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Bez transform:scale — CSS-owe skalowanie potrafi psuć klikalność
+     zewnętrznych iframe'ów w niektórych przeglądarkach. Natywny rozmiar. */
+  /* Przycinamy widget do samego przycisku — poniżej jest nieczytelny,
+     domyślny niebieski link myinstants, którego nie możemy przestylować
+     (obca domena). Nasz złoty podpis nad przyciskiem już wystarcza. */
+  .soundboard-embed {
+    width: 110px;
+    height: 98px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .soundboard-embed iframe {
+    width: 110px;
+    height: 200px;
+    border: 0;
+    display: block;
+    margin-top: -4px;
+  }
+
+  @media (min-width: 860px) {
+    html, body { height: 100%; overflow: hidden; }
+
+    .page {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 20px 14px;
+    }
+
+    header.app-header { flex: 0 0 auto; margin-bottom: 6px; }
+    #setup-section { flex: 0 0 auto; margin-bottom: 10px; padding: 10px 14px; }
+
+    .main-grid {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 14px;
+    }
+
+    /* Lewa kolumna: runda gry + wyniki drużyn, stackowane, stały rozmiar,
+       z awaryjnym własnym scrollem gdyby mimo wszystko zabrakło miejsca. */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    #game-section, #scores-section {
+      margin-bottom: 0;
+      flex: 0 0 auto;
+    }
+
+    /* Prawa kolumna: cała oddana soundboardowi. Nagłówek stały, siatka
+       przycisków rośnie i przewija się sama w tym, co zostanie. */
+    #soundboard-section {
+      margin-bottom: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #soundboard-section > .soundboard-inline-header {
+      flex: 0 0 auto;
+    }
+
+    #soundboard-section > .soundboard-grid {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
+      grid-template-columns: repeat(auto-fill, 110px);
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page">
+    <header class="app-header">
+      <h1>🔥 Zgadnij piosenkę</h1>
+      <p class="subtitle">Gra na ognisko — posłuchaj fragmentu, zgadnij, punktuj</p>
+      <p class="kbd-hint">⌨️ <kbd>←</kbd> poprzedni · <kbd>→</kbd> następny · <kbd>spacja</kbd> start/stop · <kbd>1</kbd>-<kbd>4</kbd> punkt dla drużyny · <kbd>⌫</kbd> zatrzymaj soundboard</p>
+    </header>
+
+    <section id="setup-section" class="panel">
+      <div id="setup-form">
+        <label for="playlist-input">Link do playlisty YouTube lub samo ID</label>
+        <input type="text" id="playlist-input" placeholder="https://www.youtube.com/playlist?list=..." autocomplete="off">
+        <button class="btn-secondary" id="load-btn">Wczytaj playlistę</button>
+      </div>
+      <div class="loaded-bar" id="loaded-bar" style="display:none;">
+        <span id="loaded-summary"></span>
+        <button class="btn-link" id="change-playlist-btn">Zmień playlistę</button>
+      </div>
+      <div class="status" id="setup-status"></div>
+    </section>
+
+    <div class="main-grid">
+      <div class="left-column">
+      <section id="game-section" class="panel" style="display:none;">
+        <div id="player-wrap">
+          <div id="player"></div>
+          <div id="player-overlay">🔥</div>
+        </div>
+
+        <div class="pool-row">
+          <div class="pool-info" id="pool-info"></div>
+          <button class="btn-reset-game" id="reset-game-btn">🔄 Zresetuj grę</button>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn-secondary" id="prev-btn" disabled>◀ Poprzedni</button>
+          <button class="btn-primary" id="next-btn">🎲 Następny</button>
+        </div>
+
+        <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+        <div class="timer-label" id="timer-label">gotowe do losowania</div>
+
+        <button class="btn-startstop" id="startstop-btn" disabled>▶️ Start</button>
+
+        <div class="btn-row">
+          <button class="btn-secondary" id="replay-btn" disabled>🔁 Jeszcze raz</button>
+          <button class="btn-secondary" id="reveal-btn" disabled>👁 Odpowiedź</button>
+          <button class="btn-secondary" id="trivia-btn" disabled>🧠 Ciekawostka</button>
+        </div>
+
+        <div class="answer-card placeholder" id="answer-card">Fragment jeszcze nie odsłuchany</div>
+        <div class="trivia-card" id="trivia-card"></div>
+      </section>
+
+      <section id="scores-section" class="panel">
+        <div class="scores-header">
+          <h2>Wyniki drużyn</h2>
+          <button class="btn-reset-game" id="sound-toggle-btn">🔊 Dźwięki: WŁ</button>
+        </div>
+        <div class="teams" id="teams"></div>
+        <button class="reset-scores" id="reset-scores-btn">Zeruj wszystkie wyniki</button>
+      </section>
+      </div>
+
+      <section id="soundboard-section" class="panel">
+        <div class="soundboard-inline-header">
+          <h2>🎉 Soundboard</h2>
+          <button class="btn-soundboard-stop" id="soundboard-stop-btn">🛑 Zatrzymaj</button>
+        </div>
+        <div class="soundboard-grid">
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Czesio: dzień dobry</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/czesio-dziendobry-54969/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Piuw</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/piuw-35197/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Michael Jackson: Hee Hee</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/michael-jackson-hee-hee-40277/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">FAAAH</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/faaah-63455/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">USSR!!!</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/ussr-34008/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Intro Familiada</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/intro-familiada-39221/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Jeszcze jak!</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/jeszcze-jak-11245/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Dzień dobry kochani!</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/dzien-dobry-kochani-senyszyn-97558/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Encara Messi</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/encara-messi-23845/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">OOOH MY GOD</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/oooh-my-god-13045/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Milionerzy: pytanie</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/milionerzy-pytanie-45464/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Buzzer</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/buzzer-89244/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Yeah boiii!</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/yeah-boiii-i-i-i-58469/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">No i bardzo dobrze</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/no-i-bardzo-dobrze-399/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Cygan: jest dobrze</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/cygan-jest-dobrze-61484/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">1 z 10: źle</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/1z10-zle-81313/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">John Cena: Are you sure?</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/john-cena-are-you-sure-about-that-36996/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Siema, Eniu</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/siema-eniu-21899/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Kaczyński: radzę z tym uważać</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/kaczynski-radze-z-tym-uwazac-37087/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Dawaj to mięsko</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/dawaj-to-miesko-87951/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Stachu Jones: wzbudziliście moją litość</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/stachu-jones-wzbudziliscie-moja-litosc-28108/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Otóż nie</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/otoz-nie/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Aww</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/aww/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Bruh</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/bruh/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
+          <div class="soundboard-caption">Nie wiem: papież</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/nie-wiem-papiez-51946/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+      </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="killstreak-toast"></div>
+
+  <script>
+    // ---------- Stan gry ----------
+    let player = null;
+    let playerReady = false;
+    let playlistIds = [];
+    let remainingQueue = [];
+    let currentIndex = null;
+    let currentSeekTime = null;
+    let pendingKnownSeekTime = null;
+    let answerVisible = false;
+    let triviaVisible = false;
+    let awaitingFirstPlay = false;
+    let readyTimeoutHandle = null;
+    let manualInterval = null;
+    let manualStartTs = null;
+    let isManualPlaying = false;
+    const MANUAL_BAR_REFERENCE_SECONDS = 15;
+
+    let history = [];
+    let historyPos = -1;
+
+    const MIN_FRACTION = 0.15;
+    const MAX_FRACTION = 0.75;
+
+    // ---------- Ciekawostki: ID utworu z YouTube -> lista faktów PL ----------
+    // Brakujący wpis pokazuje neutralny komunikat zamiast błędu.
+    const TRIVIA = {
+      "NlwIDxCjL-8": [
+        "Sting napisał \"Shape of My Heart\" razem z gitarzystą Dominikiem Millerem — piosenka opowiada o hazardziście, który gra w karty nie dla pieniędzy, lecz żeby odnaleźć ukrytą logikę losu i przypadku.",
+        "Utwór trafił na ścieżkę dźwiękową kultowego filmu \"Leon zawodowiec\" z 1994 roku."
+      ],
+      "vVMvZFomaeY": [
+        "Tekst \"Bo jesteś Ty\" napisał we śnie Przemysław Myszor, gitarzysta zespołu Myslovitz — z trzech piosenek, które zaproponował, to właśnie tę wybrał sam Krzysztof Krawczyk.",
+        "Utwór powstał, gdy Krawczyk zaprosił do współpracy młodych twórców polskiego rocka, w tym Muńka Staszczyka i Roberta Gawlińskiego."
+      ],
+      "vyp9pIoC-gY": [
+        "Pełny tytuł utworu Edyty Geppert to \"Och, życie, kocham cię nad życie\" — słowa napisał Wojciech Młynarski, a muzykę skomponował W. Korcz.",
+        "Piosenka po raz pierwszy ukazała się na debiutanckim albumie Edyty Geppert z 1986 roku, który odniósł natychmiastowy sukces."
+      ],
+      "AWpsOqh8q0M": [
+        "\"If I Were a Boy\" to jedyny utwór na podwójnym albumie \"I Am... Sasha Fierce\", którego Beyoncé nie współtworzyła jako autorka — piosenkę napisali BC Jean i Toby Gad.",
+        "Producent Toby Gad przez pół roku próbował zainteresować Beyoncé tym utworem, zanim w końcu udało mu się zagrać go na wspólnej sesji."
+      ],
+      "HQmmM_qwG4k": [
+        "Riff i część tekstu \"Whole Lotta Love\" przypominały bluesową piosenkę Willie'ego Dixona \"You Need Love\" — po latach sporu sądowego Dixon oficjalnie otrzymał w 1999 roku prawa autorskie do utworu.",
+        "To pierwszy utwór z albumu Led Zeppelin II z 1969 roku i jeden z najbardziej rozpoznawalnych riffów w historii rocka."
+      ],
+      "V1bFr2SWP1I": [
+        "Israel Kamakawiwo'ole nagrał swoje słynne \"Somewhere Over the Rainbow\" w jednym podejściu, o trzeciej nad ranem, gdy zadzwonił do studia i poprosił inżyniera dźwięku, żeby jeszcze go wpuścił.",
+        "Nagranie to w rzeczywistości medley z \"What a Wonderful World\" Louisa Armstronga, a towarzyszy mu wyłącznie tradycyjne hawajskie ukulele."
+      ],
+      "J6jn6d4n4lc": [
+        "Nazwa \"Clint Eastwood\" wzięła się stąd, że Damon Albarn skojarzył brzmienie utworu z muzyką do spaghetti westernów Sergio Leone i Ennio Morricone.",
+        "Charakterystyczny motyw instrumentalny to gotowy preset \"Rock 1\" z instrumentu Omnichord, na którym grał Albarn — to był debiutancki singel Gorillaz."
+      ],
+      "MV_3Dpw-BRY": [
+        "\"Nightcall\" Kavinsky'ego zawdzięcza rozgłos filmowi \"Drive\" z Ryanem Goslingiem, gdzie otwiera napisy początkowe.",
+        "Przy produkcji utworu pomagał Guy-Manuel de Homem-Christo z Daft Punk, a wokal żeńskiej partii nagrała brazylijska wokalistka Lovefoxxx."
+      ],
+      "vyzO-5vt48g": [
+        "\"Bring Me to Life\" to jedyny utwór Evanescence z męskim wokalem — wytwórnia nalegała na dodanie rapowanych fragmentów, co nie do końca podobało się Amy Lee.",
+        "Amy Lee napisała piosenkę mając 19 lat, po tym jak jej przyszły mąż zapytał ją wprost, czy jest szczęśliwa — w tamtym czasie tkwiła w toksycznym związku."
+      ],
+      "domjqjQ_WRI": [
+        "James Hetfield przyznał, że inspirował się stylem wokalnym Chrisa Isaaka, zwłaszcza jego przebojem \"Wicked Game\", pisząc partie wokalne do \"The Unforgiven\".",
+        "Piosenka doczekała się dwóch sequeli — \"The Unforgiven II\" i \"The Unforgiven III\", co czyni ją jedną z niewielu tak rozbudowanych serii w twórczości Metalliki."
+      ],
+      "0G383538qzQ": [
+        "\"Colors\" Black Pumas było inspirowane muzyką kościelną — stąd gospelowe brzmienie z organami, klaskaniem i mocnymi chórkami.",
+        "Utwór był nominowany do dwóch nagród Grammy, w tym Record of the Year, a zespół zagrał go na ceremonii inauguracyjnej w styczniu 2021 roku."
+      ],
+      "4zAThXFOy2c": [
+        "\"Tennessee Whiskey\" napisano ponad 40 lat przed hitem Chrisa Stapletona — George Strait odrzucił ten utwór, a jako pierwszy nagrał go David Allan Coe w 1981 roku.",
+        "W styczniu 2026 roku RIAA ogłosiła \"Tennessee Whiskey\" pierwszą country piosenką w historii z certyfikatem Double Diamond, oznaczającym ponad 20 milionów sprzedanych jednostek w USA."
+      ],
+      "B9FzVhw8_bY": [
+        "Teledysk do \"In Hell I'll Be In Good Company\" trafił na YouTube dopiero rok po premierze utworu i to właśnie on wywindował kanadyjski zespół The Dead South do światowej sławy — ma dziś ponad 440 milionów wyświetleń.",
+        "Choć tekst mówi o nieszczęściu i zbrodni, muzycznie to żywiołowy, folkowy kawałek, a nie mroczny blues."
+      ],
+      "wOwblaKmyVw": [
+        "\"Jolene\" Dolly Parton napisała po tym, jak ruda kasjerka bankowa zaczęła flirtować z jej mężem Carlem Deanem — sama piosenkarka mówiła, że mąż uwielbiał chodzić do banku, bo poświęcano mu tam tyle uwagi.",
+        "Imię bohaterki zapożyczyła od małej rudowłosej fanki, która poprosiła ją o autograf za kulisami — na wersji w klipie usłyszycie akustyczny cover Miley Cyrus z jej \"Backyard Sessions\"."
+      ],
+      "4EAv2s8jZgo": [
+        "\"Szum\" Kaśki Sochackiej to singel z albumu \"Ta druga\", uhonorowany Fryderykiem w kategorii singiel roku pop.",
+        "Piosenka osiągnęła w Polsce status potrójnie platynowej płyty, przekraczając 150 tysięcy sprzedanych kopii."
+      ],
+      "87gWaABqGYs": [
+        "\"Galway Girl\" Eda Sheerana powstała we współpracy z irlandzkim zespołem folkowym Beoga, których zaprosił na tydzień do swojego domowego studia.",
+        "Bohaterka piosenki to skrzypaczka zespołu Niamh Dunne — co zabawne, pochodzi ona z Limerick, a nie z Galway."
+      ],
+      "h1TQRJWLZ3s": [
+        "\"Back to Black\" Amy Winehouse napisała razem z Markiem Ronsonem po rozstaniu z Blake'em Fielderem-Civilem — para później jednak wzięła ślub.",
+        "Sama Amy tłumaczyła sens tytułu tak: kiedy związek się kończy, wraca się do tego, co znane — jej eks wrócił do swojej dziewczyny, a ona wróciła do alkoholu i mrocznych czasów."
+      ],
+      "TLV4_xaYynY": [
+        "\"All Along the Watchtower\" to cover piosenki Boba Dylana — sam autor przyznał, że wersja Jimiego Hendrixa go zaskoczyła i odtąd zmienił sposób, w jaki sam wykonuje ten utwór na żywo.",
+        "Cover Hendrixa stał się jednym z jego najwyżej notowanych singli w USA, choć oryginał Dylana w ogóle nie trafił na listy przebojów."
+      ],
+      "HfpYbWlGf9k": [
+        "Pomysł na \"Dance of Death\" Iron Maiden zrodził się, gdy Janick Gers obejrzał scenę tańca śmierci z filmu Ingmara Bergmana \"Siódma pieczęć\".",
+        "Album \"Dance of Death\" to jedyna płyta Iron Maiden, na której każdy członek zespołu ma udział autorski — nawet perkusista Nicko McBrain."
+      ],
+      "_DfQC5qHhbo": [
+        "\"Neon\" Johna Mayera uchodzi za jeden z najtrudniejszych utworów do zagrania na gitarze — kluczowa jest technika łączenia kciuka i palca wskazującego, przypominająca slap na basie.",
+        "Piosenka pochodzi jeszcze z niezależnego EP-ki Mayera \"Inside Wants Out\" z 1999 roku, na długo przed jego przebojowym albumem \"Room for Squares\"."
+      ],
+      "XpYGgtrMTYs": [
+        "Melodia \"Ave Maria\" Franciszka Schuberta w ogóle nie powstała jako modlitwa do Maryi — to fragment pieśni do słów Waltera Scotta z poematu \"Pani jeziora\", w którym pojawia się jedynie zawołanie \"Ave Maria\".",
+        "Dziś kompozycję tę śpiewali artyści tak różni jak Luciano Pavarotti i Perry Como, choć oryginalnie miała zupełnie inny kontekst literacki."
+      ],
+      "UDVtMYqUAyw": [
+        "Hans Zimmer skomponował główny motyw \"Interstellar\" w jedną noc, zanim jeszcze wiedział, że film będzie w ogóle o kosmosie — Christopher Nolan celowo nie zdradził mu fabuły, tylko poprosił o utwór o ojcostwie i więzi.",
+        "Utwór nagrano na prawdziwych, zabytkowych organach piszczałkowych z londyńskiego kościoła Temple Church z 1926 roku."
+      ],
+      "ymMYzb2HBsg": [
+        "\"Una Mattina\" Ludovico Einaudiego zawdzięcza dziś rozgłos filmowi \"Nietykalni\" (The Intouchables), którego jest jednym z najbardziej rozpoznawalnych motywów.",
+        "Utwór zainspirowany był wierszem włoskiego poety Eugenio Montale o tym samym tytule, oznaczającym po prostu \"pewnego poranka\"."
+      ],
+      "-yOZEiHLuVU": [
+        "W \"Now We Are Free\" z \"Gladiatora\" Lisa Gerrard śpiewa w wymyślonym przez siebie języku, którym — jak mówiła — porozumiewała się z Bogiem już jako dziecko.",
+        "W kompozycji Hansa Zimmera słychać ormiański instrument duduk oraz afrykańską perkusję, a rytm nawiązuje do klasycznego wiedeńskiego walca."
+      ],
+      "wkUGDYjYgMs": [
+        "Najsłynniejsze nagranie \"Dust in a Baggie\" Billy'ego Stringsa to amatorskie wideo z domówki, kręcone w piwnicy znajomej — to właśnie ten klip zapoczątkował jego wielką karierę.",
+        "Piosenka opowiada o realnej historii znajomego artysty, który za posiadanie niewielkiej ilości metamfetaminy — dosłownie \"pyłu na dnie woreczka\" — trafił do więzienia na 20 lat."
+      ],
+      "E8H-67ILaqc": [
+        "Brushy One String, jamajski muzyk grający na gitarze z jedną struną, twierdzi, że pomysł na taki instrument przyszedł mu we śnie.",
+        "Nauczył się czytać dopiero jako dorosły — głównie po to, by móc samodzielnie pisać teksty i podpisywać swoje utwory po tym, jak wcześniej został oszukany przy kontrakcie płytowym."
+      ],
+      "-jMAIuqnFEI": [
+        "Sting napisał \"Fields of Gold\" po tym, jak kupił dom obok pola jęczmienia — to właśnie zachody słońca nad tym polem zainspirowały złociste obrazy w tekście.",
+        "Utwór nagrano na żywo, bez żadnych dogrywek, w domowym studiu urządzonym w jadalni Stinga; Paul McCartney przyznał później, że żałuje, iż sam go nie napisał."
+      ],
+      "HgzGwKwLmgM": [
+        "\"Don't Stop Me Now\" Queen za życia Freddiego Mercury'ego nigdy nie było wielkim hitem w USA — prawdziwą drugą młodość utwór przeżył dzięki filmowi \"Shaun of the Dead\" z 2004 roku.",
+        "Piosenkę nagrano w sierpniu 1978 roku we francuskim studiu Super Bear, a jej autorem był w całości Freddie Mercury."
+      ],
+      "PfAWReBmxEs": [
+        "\"Child in Time\" Deep Purple zainspirowane było psychodelicznym utworem \"Bombay Calling\" zespołu It's a Beautiful Day, granym przez klawiszowca Jona Lorda.",
+        "Ian Gillan z czasem przestał wykonywać ten utwór na żywo, bo — jak żartował — jego wysokie falsety traktował \"jak konkurencję olimpijską\", której z wiekiem nie dawał już rady powtórzyć."
+      ],
+      "qfNmyxV2Ncw": [
+        "To właśnie w teledysku do \"Cryin'\" po raz pierwszy wystąpiła 16-letnia wówczas Alicia Silverstone — rola w tym klipie zwróciła na nią uwagę reżyserki, która obsadziła ją później w kultowym \"Bezcennej\" (Clueless).",
+        "Utwór zdobył nagrodę za Wideo Roku na MTV Video Music Awards w 1994 roku."
+      ],
+      "u2tlWJhKSOE": [
+        "\"Mr. Crowley\" Ozzy'ego Osbourne'a opowiada o Aleisterze Crowleyu, brytyjskim okultyście — inspiracją była jego książka \"Dziennik narkomana\" oraz talia kart tarota znaleziona w studiu podczas nagrywania.",
+        "Solówkę gitarową Randy'ego Rhoadsa z tego utworu czytelnicy magazynu Guitar World uznali za jedną z najlepszych solówek w historii muzyki."
+      ],
+      "2lvs2FzF64o": [
+        "Według Ronniego Jamesa Dio bohater \"Holy Diver\" wcale nie jest diabłem, lecz postacią przypominającą zbawiciela, który schodzi do piekła, by odkupić winy ludzi na innej planecie.",
+        "Okładka albumu przedstawia maskotkę zespołu okuwającą łańcuchem kapłana — sam Dio zauważał jednak, że równie dobrze może to być ksiądz pokonujący demona, w zależności od interpretacji."
+      ],
+      "Y8HOfcYWZoo": [
+        "\"The Power of Love\" w wykonaniu Céline Dion to w rzeczywistości cover — oryginał nagrała w 1984 roku amerykańska wokalistka Jennifer Rush.",
+        "Wersja Céline Dion była jej pierwszym singlem, który dotarł na szczyt listy Billboard Hot 100 w USA, gdzie utrzymał się przez cztery tygodnie."
+      ],
+      "dYnS6WGjATU": [
+        "\"White Dove\" Scorpions to w gruncie rzeczy przearanżowana wersja węgierskiego przeboju \"Gyöngyhajú lány\" zespołu Omega z 1969 roku — Klaus Meine zakochał się w tej melodii, słysząc jak śpiewa ją cały tłum na koncercie w Budapeszcie.",
+        "Nowy, angielski tekst napisano w tydzień specjalnie na charytatywny singel, z którego dochód przeznaczono na pomoc uchodźcom z Rwandy."
+      ],
+      "kDcNpmoIAxk": [
+        "\"Siwy konik zarżał\" w wykonaniu Dawida Hallmanna to tradycyjna, żołnierska pieśń z Suwalszczyzny, którą artysta nagrał w ramach projektu poświęconego zapomnianym pieśniom dawnej Rzeczpospolitej."
+      ],
+      "KWZGAExj-es": [
+        "Teledysk do \"Elastic Heart\" Sii, z Shią LaBeoufem i wtedy 12-letnią Maddie Ziegler tańczącymi w klatce, wywołał ogromną kontrowersję — Sia tłumaczyła potem, że oboje mieli grać dwie walczące ze sobą strony tej samej osoby.",
+        "Sama Maddie Ziegler mówiła później, że jej rola miała symbolizować wilkołaka, a scena przedstawiała walkę, nie taniec we dwoje."
+      ],
+      "nVjsGKrE6E8": [
+        "Oryginalna wersja \"Summertime Sadness\" Lany Del Rey zyskała drugie życie dzięki klubowemu remiksowi francuskiego DJ-a Cedrica Gervaisa, który nagrał go w jeden dzień.",
+        "Remiks Gervaisa zdobył Grammy za najlepszy remiks nieklasyczny i stał się największym przebojem Lany Del Rey na liście Billboard Hot 100."
+      ],
+      "0UHwkfhwjsk": [
+        "Steven Wilson z Porcupine Tree dorastał w pobliżu stacji kolejowej i zasypiał przy odgłosach przejeżdżających pociągów — właśnie te wspomnienia z dzieciństwa zainspirowały utwór \"Trains\".",
+        "Bandżo słyszalne w piosence to celowy kontrast — symbolizuje niewinność dzieciństwa, zanim album \"In Absentia\" przejdzie do mroczniejszych, autobiograficznych tematów."
+      ],
+      "wcXAKhwsl6o": [
+        "\"Dumka na dwa serca\" pierwotnie nosiła tytuł \"Pieśń Jana i Heleny\" i miała być śpiewana solo przez Izabellę Scorupco, która jednak odrzuciła propozycję.",
+        "Choć duet brzmi, jakby Edyta Górniak i Mietek Szcześniak śpiewali razem w studio, w rzeczywistości nagrali swoje partie osobno — co w duetach zdarza się bardzo rzadko."
+      ],
+      "OmLNs6zQIHo": [
+        "\"People Help the People\" w wykonaniu Birdy to cover piosenki zespołu Cherry Ghost z 2007 roku — Birdy miała zaledwie 15 lat, gdy nagrała swoją wersję.",
+        "Autor oryginału, Simon Aldred, przyznał, że cover Birdy tak bardzo mu się spodobał, że popchnął go w stronę pisania piosenek dla innych artystów jako głównego zajęcia."
+      ],
+      "uelHwf8o7_U": [
+        "Refren \"Love the Way You Lie\" napisała i zaśpiewała na demo Skylar Grey, gdy sama czuła się jak w toksywnym związku — z przemysłem muzycznym.",
+        "Zarówno Eminem, jak i Rihanna mówili, że sięgnęli w tym utworze po własne, bardzo osobiste doświadczenia z trudnych, pełnych przemocy relacji."
+      ],
+      "9P16xvwMQ5A": [
+        "Album \"Wish You Were Here\" Pink Floyd powstał w dużej mierze jako hołd dla Syda Barretta, założyciela zespołu, który odszedł z powodu problemów psychicznych — co ciekawe, sam Barrett niespodziewanie odwiedził studio podczas nagrywania płyty, a koledzy z zespołu początkowo go nie rozpoznali.",
+        "David Gilmour dopilnował, by Syd Barrett otrzymywał tantiemy z twórczości Pink Floyd aż do swojej śmierci w 2006 roku."
+      ],
+      "wDjeBNv6ip0": [
+        "LP napisała \"Lost on You\" rok przed rozstaniem z partnerką, gdy zaczęła czuć, że związek powoli się kończy — wielu słuchaczy mylnie odbiera ten utwór jako piosenkę o zakochaniu.",
+        "Charakterystyczny gwizd w utworze nawiązuje do stylu muzyki ze spaghetti westernów Sergio Leone i kompozycji Ennio Morricone."
+      ],
+      "ZhIsAZO5gl0": [
+        "\"I Was Made for Lovin' You\" Kiss powstało pod wpływem popularnego wtedy disco — Paul Stanley napisał utwór częściowo w nowojorskim klubie Studio 54, chcąc udowodnić, jak łatwo skomponować hit disco.",
+        "Gene Simmons do dziś przyznaje, że to jego najmniej lubiana piosenka Kiss, mimo że stała się złotą płytą zespołu."
+      ],
+      "HyHNuVaZJ-k": [
+        "Charakterystyczny śmiech otwierający \"Feel Good Inc.\" należy do Pasemastera Mase'a z De La Soul — to jego rozpoznawalny sygnaturowy chichot.",
+        "Utwór zdobył Grammy za najlepszą popową kolaborację wokalną i był jednym z pierwszych, przy których Damon Albarn pracował z producentem Danger Mouse."
+      ],
+      "DyDfgMOUjCI": [
+        "\"bad guy\" uczyniło wtedy 17-letnią Billie Eilish pierwszą artystką urodzoną w latach 2000. na szczycie listy Billboard Hot 100.",
+        "Utwór napisała razem z bratem Finneasem, a druga połowa piosenki jest o połowę wolniejsza od pierwszej — to celowy zabieg kompozycyjny."
+      ],
+      "tL25rbnvM4o": [
+        "Cover \"The Phantom of the Opera\" w wykonaniu Nightwish, z Tarją Turunen i Marco Hietalą w rolach głównych, to podobno jedna z niewielu wersji tego utworu, którą docenia sam Andrew Lloyd Webber, autor musicalu.",
+        "Nagranie z koncertu w Helsinkach, na którym wystąpiło ponad 13 tysięcy widzów, okazało się ostatnim występem Tarji Turunen jako wokalistki Nightwish."
+      ],
+      "n63UbX5kzAc": [
+        "\"The Bard's Song\" Blind Guardian powstało w trudnym dla wokalisty Hansiego Kürscha okresie, gdy umierał jego ojciec — stąd emocjonalny, niemal żałobny charakter tekstu.",
+        "Na koncertach Kürsch często śpiewa tylko fragmenty utworu, zostawiając resztę do zaśpiewania publiczności."
+      ],
+      "Cy44ocuoWhE": [
+        "\"Herr Mannelig\" w wykonaniu Garmarny to szwedzka ballada ludowa sprzed wieków, opowiadająca o górskiej trollicy, która oświadcza się młodemu mężczyźnie — ten odrzuca ją, bo nie jest chrześcijanką.",
+        "Ballada po raz pierwszy spisana została dopiero w 1877 roku, choć sama melodia i historia sięgają prawdopodobnie XVII wieku."
+      ],
+      "KtlgYxa6BMU": [
+        "\"The Night We Met\" Lord Huron zawdzięcza swoją światową popularność serialowi \"13 Reasons Why\" — frontman zespołu Ben Schneider początkowo wahał się, czy zgodzić się na wykorzystanie utworu, ale namówiła go żona.",
+        "Utwór doczekał się oficjalnego remiksu z dodatkowym wokalem Phoebe Bridgers, wykorzystanego w drugim sezonie serialu."
+      ],
+      "pGhwBFYtn1s": [
+        "Billie Joe Armstrong napisał \"Wake Me Up When September Ends\" ku pamięci swojego ojca, który zmarł na raka, gdy wokalista miał zaledwie 10 lat — data jego śmierci to 10 września.",
+        "Choć piosenka ma bardzo osobisty rodowód, z czasem stała się też symbolem żałoby po ofiarach huraganu Katrina i pieśnią antywojenną."
+      ],
+      "xwtdhWltSIg": [
+        "\"Losing My Religion\" R.E.M. powstało niemal przez przypadek — gitarzysta Peter Buck uczył się dopiero grać na mandolinie i nagrywając swoje ćwiczenia na kasetę, natrafił na riff, z którego zrodził się cały utwór.",
+        "Zarówno wokal, jak i partia mandoliny zostały nagrane na żywo, w jednym podejściu, bez żadnych poprawek."
+      ],
+      "JgqJjLQ1gP0": [
+        "Fisz, autor \"Czerwonej sukienki\", jest synem Wojciecha Waglewskiego, założyciela zespołu Voo Voo.",
+        "Tekst piosenki bywa odczytywany jako metafora przedmiotowego traktowania kobiet przez mężczyzn, choć część słuchaczy interpretuje go też jako polemikę z \"Letnią miłością\" Warszawskiego Deszczu."
+      ],
+      "37GGlFRJc34": [
+        "\"Tiramisu\" PRO8L3M to jeden z najbardziej rozpoznawalnych utworów \"storytellingowych\" Oskara — opowiada o nieodpowiedzialnych decyzjach podejmowanych pod wpływem alkoholu podczas imprezowego wieczoru.",
+        "Utwór pochodzi z EP-ki \"C30-C39\" z 2013 roku, a jego styl narracyjny porównywano do amerykańskiego rapera Curren$y'ego."
+      ]
+    };
+
+    // ---------- DOM refs ----------
+    const playlistInput = document.getElementById('playlist-input');
+    const loadBtn = document.getElementById('load-btn');
+    const setupForm = document.getElementById('setup-form');
+    const loadedBar = document.getElementById('loaded-bar');
+    const loadedSummary = document.getElementById('loaded-summary');
+    const changePlaylistBtn = document.getElementById('change-playlist-btn');
+    const setupStatus = document.getElementById('setup-status');
+    const gameSection = document.getElementById('game-section');
+    const playerOverlay = document.getElementById('player-overlay');
+    const poolInfo = document.getElementById('pool-info');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const startStopBtn = document.getElementById('startstop-btn');
+    const resetGameBtn = document.getElementById('reset-game-btn');
+    const replayBtn = document.getElementById('replay-btn');
+    const revealBtn = document.getElementById('reveal-btn');
+    const triviaBtn = document.getElementById('trivia-btn');
+    const timerBar = document.getElementById('timer-bar');
+    const timerLabel = document.getElementById('timer-label');
+    const answerCard = document.getElementById('answer-card');
+    const triviaCard = document.getElementById('trivia-card');
+
+    function showStatus(el, message, type) {
+      el.textContent = message;
+      el.className = 'status show ' + type;
+    }
+
+    function clearStatus(el) {
+      el.className = 'status';
+      el.textContent = '';
+    }
+
+    // ---------- Parsowanie ID playlisty ----------
+    function extractPlaylistId(raw) {
+      const value = raw.trim();
+      if (!value) return null;
+
+      const urlMatch = value.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+      if (urlMatch) return urlMatch[1];
+
+      // Gołe ID (bez query string) — typowe playlisty YT: PL/UU/FL/RD/OLAK5uy_...
+      if (/^[a-zA-Z0-9_-]{10,}$/.test(value) && !value.includes('/') && !value.includes('.')) {
+        return value;
+      }
+
+      return null;
+    }
+
+    // ---------- YouTube IFrame API ----------
+    function loadYouTubeApiScript() {
+      if (window.YT && window.YT.Player) return;
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+    }
+
+    let pendingPlaylistId = null;
+
+    window.onYouTubeIframeAPIReady = function () {
+      if (pendingPlaylistId) {
+        createPlayer(pendingPlaylistId);
+      }
+    };
+
+    function createPlayer(playlistId) {
+      if (readyTimeoutHandle) clearTimeout(readyTimeoutHandle);
+
+      readyTimeoutHandle = setTimeout(function () {
+        if (!playerReady) {
+          showStatus(setupStatus,
+            'Playlista nie wczytała się w 15 sekund. Sprawdź, czy jest publiczna albo niepubliczna/unlisted (nie prywatna), i czy ID jest poprawne.',
+            'error');
+        }
+      }, 15000);
+
+      if (player) {
+        player.destroy();
+        player = null;
+      }
+
+      player = new YT.Player('player', {
+        width: '84',
+        height: '47',
+        playerVars: {
+          listType: 'playlist',
+          list: playlistId,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1
+        },
+        events: {
+          onReady: onPlayerReady,
+          onStateChange: onPlayerStateChange,
+          onError: onPlayerError
+        }
+      });
+    }
+
+    function onPlayerReady() {
+      playerReady = true;
+      if (readyTimeoutHandle) clearTimeout(readyTimeoutHandle);
+
+      let list = [];
+      try {
+        list = player.getPlaylist() || [];
+      } catch (e) {
+        list = [];
+      }
+
+      if (!list.length) {
+        showStatus(setupStatus,
+          'Nie udało się odczytać utworów z playlisty. Sprawdź, czy playlista jest publiczna lub niepubliczna/unlisted (nie prywatna) i zawiera dostępne wideo.',
+          'error');
+        return;
+      }
+
+      playlistIds = list;
+      resetQueue();
+      history = [];
+      historyPos = -1;
+      answerVisible = false;
+      triviaVisible = false;
+      currentIndex = null;
+      currentSeekTime = null;
+
+      try { player.mute(); player.stopVideo(); player.unMute(); } catch (e) {}
+
+      showStatus(setupStatus, 'Wczytano playlistę: ' + playlistIds.length + ' utworów. Można grać!', 'success');
+      setupForm.style.display = 'none';
+      loadedBar.style.display = 'flex';
+      loadedSummary.textContent = '🎵 ' + playlistIds.length + ' utworów gotowych';
+
+      gameSection.style.display = '';
+      startStopBtn.disabled = true;
+      replayBtn.disabled = true;
+      revealBtn.disabled = true;
+      triviaBtn.disabled = true;
+      resetAnswerCard();
+      resetTriviaCard();
+      lockNavButtons(false);
+      updatePoolInfo();
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING && awaitingFirstPlay) {
+        awaitingFirstPlay = false;
+
+        if (pendingKnownSeekTime !== null) {
+          const t = pendingKnownSeekTime;
+          pendingKnownSeekTime = null;
+          finishCue(t);
+          return;
+        }
+
+        const duration = player.getDuration();
+        if (!duration || duration <= 0) {
+          // duration jeszcze niedostępny — spróbuj ponownie za chwilę
+          setTimeout(function () {
+            const d2 = player.getDuration();
+            finishCue(computeRandomSeek(d2 && d2 > 0 ? d2 : 30));
+          }, 300);
+          return;
+        }
+        finishCue(computeRandomSeek(duration));
+      }
+    }
+
+    function computeRandomSeek(duration) {
+      const minT = duration * MIN_FRACTION;
+      const maxT = Math.max(minT + 1, duration * MAX_FRACTION);
+      const seekTime = minT + Math.random() * (maxT - minT);
+      if (historyPos >= 0 && history[historyPos]) {
+        history[historyPos].seekTime = seekTime;
+      }
+      return seekTime;
+    }
+
+    // Utwór jest wyciszony i cofnięty do losowego momentu, ale NIE gra —
+    // dźwięk odblokowuje dopiero przycisk Start.
+    function finishCue(seekTime) {
+      currentSeekTime = seekTime;
+      player.seekTo(seekTime, true);
+      try { player.pauseVideo(); } catch (e) {}
+      try { player.unMute(); } catch (e) {}
+
+      timerBar.style.width = '0%';
+      timerLabel.textContent = 'gotowe — wciśnij Start ▶';
+      lockNavButtons(false);
+      startStopBtn.disabled = false;
+      replayBtn.disabled = false;
+      revealBtn.disabled = false;
+      triviaBtn.disabled = false;
+
+      if (answerVisible) renderAnswerNow();
+      if (triviaVisible) renderTriviaNow();
+    }
+
+    function onPlayerError(event) {
+      awaitingFirstPlay = false;
+      try { player.unMute(); } catch (e) {}
+      const codeMessages = {
+        2: 'Nieprawidłowe ID playlisty lub utworu.',
+        5: 'Błąd odtwarzacza HTML5. Spróbuj wczytać playlistę ponownie.',
+        100: 'Playlista lub utwór nie zostały znalezione. Sprawdź, czy nie zostały usunięte lub oznaczone jako prywatne.',
+        101: 'Właściciel utworu zablokował odtwarzanie w odtwarzaczach zewnętrznych (embedding). Wybierz inną playlistę.',
+        150: 'Właściciel utworu zablokował odtwarzanie w odtwarzaczach zewnętrznych (embedding). Wybierz inną playlistę.'
+      };
+      const msg = codeMessages[event.data] ||
+        'Nie udało się odtworzyć playlisty. Jeśli jest prywatna, zmień jej widoczność na "niepubliczna/unlisted" i spróbuj ponownie.';
+      showStatus(setupStatus, msg, 'error');
+    }
+
+    // ---------- Losowanie bez powtórek ----------
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function resetQueue() {
+      remainingQueue = shuffle(playlistIds.map((_, i) => i));
+    }
+
+    function updatePoolInfo() {
+      poolInfo.textContent = 'Pozostało w puli: ' + remainingQueue.length + ' / ' + playlistIds.length;
+    }
+
+    // ---------- Blokowanie przycisków nawigacji ----------
+    function lockNavButtons(locked) {
+      nextBtn.disabled = locked;
+      prevBtn.disabled = locked || historyPos <= 0;
+    }
+
+    // ---------- Rozgrywka ----------
+    // Next/Poprzedni tylko WYBIERAJĄ utwór (cicho, w pauzie) — dźwięk startuje
+    // dopiero po wciśnięciu Start. Playlista musi chwilę pograć wyciszona,
+    // żeby dało się odczytać długość utworu i przewinąć do losowego momentu.
+    function beginRound(videoIndex, knownSeekTime) {
+      // Opuszczamy poprzednią rundę (o ile jakaś była) — zamyka serię tym, którzy nic
+      // w niej nie zdobyli (kto zdobył, już dostał dźwięk killstreak na bieżąco).
+      if (currentIndex !== null) {
+        evaluateStreaksAndAdvance();
+      }
+
+      currentIndex = videoIndex;
+      currentSeekTime = knownSeekTime;
+      pendingKnownSeekTime = knownSeekTime;
+
+      // Jeśli tryb "pokaż odpowiedź"/"ciekawostka" jest włączony, zostaje
+      // włączony także po zmianie utworu — treść odświeży finishCue().
+      if (!answerVisible) {
+        resetAnswerCard();
+        playerOverlay.classList.remove('hidden');
+      }
+      if (!triviaVisible) {
+        resetTriviaCard();
+      }
+
+      revealBtn.disabled = true;
+      triviaBtn.disabled = true;
+      replayBtn.disabled = true;
+      startStopBtn.disabled = true;
+      lockNavButtons(true);
+      resetManualState();
+      timerBar.style.width = '0%';
+      timerLabel.textContent = 'przygotowuję…';
+
+      try { player.mute(); } catch (e) {}
+      awaitingFirstPlay = true;
+      player.playVideoAt(videoIndex);
+    }
+
+    function goNext() {
+      if (nextBtn.disabled || !playerReady || !playlistIds.length) return;
+
+      if (historyPos < history.length - 1) {
+        historyPos++;
+        const entry = history[historyPos];
+        beginRound(entry.videoIndex, entry.seekTime);
+        return;
+      }
+
+      if (remainingQueue.length === 0) {
+        resetQueue();
+        showStatus(setupStatus, 'Pula utworów się wyczerpała — losowanie zaczyna się od nowa!', 'info');
+      }
+
+      const idx = remainingQueue.pop();
+      history.push({ videoIndex: idx, seekTime: null });
+      historyPos = history.length - 1;
+      updatePoolInfo();
+      beginRound(idx, null);
+    }
+
+    function goPrevious() {
+      if (prevBtn.disabled || historyPos <= 0) return;
+      historyPos--;
+      const entry = history[historyPos];
+      beginRound(entry.videoIndex, entry.seekTime);
+    }
+
+    // Cofa do oryginalnego losowego momentu tej rundy — zostaje w pauzie,
+    // dźwięk włącza dopiero Start.
+    function replaySame() {
+      if (currentIndex === null || currentSeekTime === null || !playerReady) return;
+      if (replayBtn.disabled) return;
+      resetManualState();
+      player.seekTo(currentSeekTime, true);
+      try { player.pauseVideo(); } catch (e) {}
+      timerBar.style.width = '0%';
+      timerLabel.textContent = 'gotowe — wciśnij Start ▶';
+    }
+
+    // ---------- Start/Stop (ręczne granie, wznawia od miejsca zatrzymania) ----------
+    function resetManualState() {
+      if (manualInterval) {
+        clearInterval(manualInterval);
+        manualInterval = null;
+      }
+      isManualPlaying = false;
+      startStopBtn.textContent = '▶️ Start';
+      startStopBtn.classList.remove('playing');
+    }
+
+    function toggleStartStop() {
+      if (startStopBtn.disabled || currentIndex === null || !playerReady) return;
+      if (isManualPlaying) {
+        stopManual();
+      } else {
+        startManual();
+      }
+    }
+
+    function startManual() {
+      if (manualInterval) return;
+      isManualPlaying = true;
+      lockNavButtons(true);
+      replayBtn.disabled = true;
+      startStopBtn.textContent = '⏸️ Stop';
+      startStopBtn.classList.add('playing');
+
+      player.playVideo();
+
+      manualStartTs = Date.now();
+      timerBar.style.width = '0%';
+      timerLabel.textContent = '0.0 s';
+
+      manualInterval = setInterval(function () {
+        const elapsed = (Date.now() - manualStartTs) / 1000;
+        const pct = Math.min(100, (elapsed / MANUAL_BAR_REFERENCE_SECONDS) * 100);
+        timerBar.style.width = pct + '%';
+        timerLabel.textContent = elapsed.toFixed(1) + ' s';
+      }, 100);
+    }
+
+    function stopManual() {
+      if (!manualInterval) return;
+      clearInterval(manualInterval);
+      manualInterval = null;
+      isManualPlaying = false;
+      try { player.pauseVideo(); } catch (e) {}
+      timerLabel.textContent = 'stop';
+      startStopBtn.textContent = '▶️ Start';
+      startStopBtn.classList.remove('playing');
+      lockNavButtons(false);
+      replayBtn.disabled = false;
+    }
+
+    // ---------- Reset gry (czyści pulę losowania, zostawia wyniki drużyn) ----------
+    function resetGame() {
+      if (!playlistIds.length) return;
+      if (!confirm('Zresetować pulę losowania? Wszystkie utwory znów będą dostępne, a bieżąca runda zostanie przerwana. Wyniki drużyn nie zostaną ruszone.')) return;
+
+      resetManualState();
+      try { player.pauseVideo(); } catch (e) {}
+
+      resetQueue();
+      history = [];
+      historyPos = -1;
+      currentIndex = null;
+      currentSeekTime = null;
+      answerVisible = false;
+      triviaVisible = false;
+      awaitingFirstPlay = false;
+      // Przerwana runda nie liczy się ani na plus, ani na minus serii.
+      teams.forEach(function (t) { t.roundPoints = 0; t.streakCountedThisRound = false; });
+
+      resetAnswerCard();
+      resetTriviaCard();
+      playerOverlay.classList.remove('hidden');
+      timerBar.style.width = '0%';
+      timerLabel.textContent = 'gotowe do losowania';
+
+      startStopBtn.disabled = true;
+      replayBtn.disabled = true;
+      revealBtn.disabled = true;
+      triviaBtn.disabled = true;
+      lockNavButtons(false);
+
+      updatePoolInfo();
+      showStatus(setupStatus, 'Gra zresetowana — pula utworów znów pełna.', 'info');
+    }
+
+    function resetAnswerCard() {
+      answerCard.className = 'answer-card placeholder';
+      answerCard.textContent = 'Fragment jeszcze nie odsłuchany';
+    }
+
+    function renderAnswerNow() {
+      let data = {};
+      try { data = player.getVideoData() || {}; } catch (e) {}
+      const title = data.title || '(nieznany tytuł)';
+      const author = data.author || '';
+      answerCard.className = 'answer-card';
+      answerCard.innerHTML = '<div class="answer-title">' + escapeHtml(title) + '</div>' +
+        (author ? '<div>' + escapeHtml(author) + '</div>' : '');
+    }
+
+    // Odpowiedź to teraz przełącznik trwały — zmiana utworu jej nie chowa,
+    // dopóki host sam nie kliknie "Ukryj odpowiedź".
+    function toggleReveal() {
+      if (revealBtn.disabled || currentIndex === null) return;
+      answerVisible = !answerVisible;
+      if (answerVisible) {
+        renderAnswerNow();
+        playerOverlay.classList.add('hidden');
+        revealBtn.textContent = '🙈 Ukryj';
+      } else {
+        resetAnswerCard();
+        playerOverlay.classList.remove('hidden');
+        revealBtn.textContent = '👁 Odpowiedź';
+      }
+    }
+
+    function resetTriviaCard() {
+      triviaCard.classList.remove('show');
+      triviaCard.innerHTML = '';
+    }
+
+    function renderTriviaNow() {
+      const videoId = playlistIds[currentIndex];
+      const facts = TRIVIA[videoId];
+      triviaCard.classList.add('show');
+      if (facts && facts.length) {
+        triviaCard.innerHTML = facts.map(function (f) { return '<div>🧠 ' + escapeHtml(f) + '</div>'; }).join('');
+      } else {
+        triviaCard.innerHTML = '<div>Brak ciekawostki dla tego utworu.</div>';
+      }
+    }
+
+    // Ciekawostka też jest trwałym przełącznikiem, tak samo jak odpowiedź.
+    function toggleTrivia() {
+      if (triviaBtn.disabled || currentIndex === null) return;
+      triviaVisible = !triviaVisible;
+      if (triviaVisible) {
+        renderTriviaNow();
+        triviaBtn.textContent = '🧠 Ukryj';
+      } else {
+        resetTriviaCard();
+        triviaBtn.textContent = '🧠 Ciekawostka';
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ---------- Wyniki drużyn ----------
+    const teamsContainer = document.getElementById('teams');
+    const defaultTeamNames = ['Drużyna 1', 'Drużyna 2', 'Drużyna 3', 'Drużyna 4'];
+    // roundPoints = suma +1/-1 przyznana danej drużynie w BIEŻĄCEJ rundzie (zeruje się przy
+    // przejściu do kolejnego utworu). streak = liczba kolejnych rund z rzędu, w których
+    // roundPoints wyszło > 0 — to na jej podstawie odpalane są dźwięki killstreak.
+    const teams = defaultTeamNames.map(name => ({ name, score: 0, roundPoints: 0, streak: 0, streakCountedThisRound: false }));
+
+    // ---------- Killstreak: dźwięki i toast ----------
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+    const killstreakToast = document.getElementById('killstreak-toast');
+    let killSoundsEnabled = true;
+    let killstreakToastTimeout = null;
+
+    const KILLSTREAK_LABELS = {
+      double: '🔥 DOUBLE KILL',
+      triple: '⚡ TRIPLE KILL',
+      monster: '💀 MONSTER KILL'
+    };
+    const KILLSTREAK_FILES = {
+      double: 'sounds/double-kill.mp3',
+      triple: 'sounds/triple-kill.mp3',
+      monster: 'sounds/monster-kill.mp3'
+    };
+    // Nuty (Hz) do wygenerowanego "power-up" zastępczego, gdyby brakowało pliku w sounds/.
+    const KILLSTREAK_SYNTH_NOTES = {
+      double: [523.25, 659.25],
+      triple: [523.25, 659.25, 783.99],
+      monster: [392.00, 523.25, 659.25, 783.99, 1046.50]
+    };
+
+    function getAudioContext() {
+      if (!window.__quizAudioCtx) {
+        try {
+          window.__quizAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          window.__quizAudioCtx = null;
+        }
+      }
+      return window.__quizAudioCtx;
+    }
+
+    function playTone(ctx, freq, startTime, duration, type, gainPeak) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(gainPeak, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.02);
+    }
+
+    // Nasz własny, niezależny od żadnych praw autorskich zamiennik dźwięku "kill streak" —
+    // rosnąca sekwencja nut, tym dłuższa i bogatsza im wyższy streak.
+    function playSynthKillSound(level) {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const notes = KILLSTREAK_SYNTH_NOTES[level] || KILLSTREAK_SYNTH_NOTES.double;
+      const now = ctx.currentTime;
+      const step = 0.11;
+      notes.forEach(function (freq, i) {
+        playTone(ctx, freq, now + i * step, 0.25, 'square', 0.16);
+        playTone(ctx, freq * 2, now + i * step, 0.2, 'triangle', 0.05);
+      });
+    }
+
+    // Najpierw próbuje zagrać prawdziwy plik z sounds/ (jeśli host go tam wrzucił),
+    // a jeśli go nie ma — bez przerwy w akcji odpala wygenerowany zamiennik.
+    function playKillSound(level) {
+      if (!killSoundsEnabled) return;
+      const src = KILLSTREAK_FILES[level];
+      const audio = new Audio(src);
+      let handled = false;
+      const fallback = function () {
+        if (handled) return;
+        handled = true;
+        playSynthKillSound(level);
+      };
+      audio.addEventListener('canplaythrough', function () {
+        if (handled) return;
+        handled = true;
+        audio.play().catch(fallback);
+      }, { once: true });
+      audio.addEventListener('error', fallback, { once: true });
+      setTimeout(fallback, 700);
+    }
+
+    function showKillstreakToast(level, teamName) {
+      killstreakToast.textContent = (KILLSTREAK_LABELS[level] || '') + ' — ' + teamName + '!';
+      killstreakToast.classList.add('show');
+      if (killstreakToastTimeout) clearTimeout(killstreakToastTimeout);
+      killstreakToastTimeout = setTimeout(function () {
+        killstreakToast.classList.remove('show');
+      }, 2500);
+    }
+
+    soundToggleBtn.addEventListener('click', function () {
+      killSoundsEnabled = !killSoundsEnabled;
+      soundToggleBtn.textContent = killSoundsEnabled ? '🔊 Dźwięki: WŁ' : '🔇 Dźwięki: WYŁ';
+    });
+
+    // ---------- Soundboard (na stałe w prawej kolumnie) ----------
+    // Widgety myinstants są z obcej domeny — nie mamy dostępu do ich JS/audio,
+    // więc jedyny sposób, by je uciszyć, to przeładować każdy iframe od nowa.
+    function stopAllSoundboardSounds() {
+      document.querySelectorAll('.soundboard-embed iframe').forEach(function (f) {
+        const src = f.src;
+        f.src = '';
+        f.src = src;
+      });
+    }
+
+    document.getElementById('soundboard-stop-btn').addEventListener('click', stopAllSoundboardSounds);
+
+    // Dźwięk killstreak odpala się NATYCHMIAST przy przyznaniu punktów (patrz
+    // applyScoreDelta) — tu tylko zamykamy rundę, która się właśnie kończy: drużyny,
+    // które nic w niej nie zdobyły, tracą serię. Wywoływane przy KAŻDYM przejściu
+    // do innego utworu (Następny/Poprzedni).
+    function evaluateStreaksAndAdvance() {
+      teams.forEach(function (team) {
+        if (!team.streakCountedThisRound) {
+          team.streak = 0;
+        }
+        team.roundPoints = 0;
+        team.streakCountedThisRound = false;
+      });
+    }
+
+    // Wspólna logika +1/-1 dla drużyny — pierwszy dodatni wynik w danej rundzie
+    // od razu podbija serię i (jeśli trafi w 2/3/5) odpala dźwięk killstreak.
+    function applyScoreDelta(team, delta, scoreEl) {
+      team.score += delta;
+      team.roundPoints += delta;
+      scoreEl.textContent = team.score;
+
+      if (delta > 0 && !team.streakCountedThisRound && team.roundPoints > 0) {
+        team.streakCountedThisRound = true;
+        team.streak++;
+        if (team.streak === 2) {
+          playKillSound('double');
+          showKillstreakToast('double', team.name);
+        } else if (team.streak === 3) {
+          playKillSound('triple');
+          showKillstreakToast('triple', team.name);
+        } else if (team.streak === 5) {
+          playKillSound('monster');
+          showKillstreakToast('monster', team.name);
+        }
+      }
+    }
+
+    function renderTeams() {
+      teamsContainer.innerHTML = '';
+      teams.forEach((team, i) => {
+        const card = document.createElement('div');
+        card.className = 'team-card';
+
+        const nameInput = document.createElement('input');
+        nameInput.className = 'team-name';
+        nameInput.value = team.name;
+        nameInput.addEventListener('input', () => { team.name = nameInput.value; });
+
+        const row = document.createElement('div');
+        row.className = 'team-score-row';
+
+        const minusBtn = document.createElement('button');
+        minusBtn.className = 'score-btn minus';
+        minusBtn.textContent = '−';
+        minusBtn.addEventListener('click', () => applyScoreDelta(team, -1, scoreEl));
+
+        const scoreEl = document.createElement('div');
+        scoreEl.className = 'team-score';
+        scoreEl.textContent = team.score;
+        team.scoreEl = scoreEl;
+
+        const plusBtn = document.createElement('button');
+        plusBtn.className = 'score-btn plus';
+        plusBtn.textContent = '+';
+        plusBtn.addEventListener('click', () => applyScoreDelta(team, 1, scoreEl));
+
+        row.appendChild(minusBtn);
+        row.appendChild(scoreEl);
+        row.appendChild(plusBtn);
+        card.appendChild(nameInput);
+        card.appendChild(row);
+        teamsContainer.appendChild(card);
+      });
+    }
+
+    document.getElementById('reset-scores-btn').addEventListener('click', () => {
+      if (!confirm('Wyzerować wyniki wszystkich drużyn?')) return;
+      teams.forEach(t => { t.score = 0; t.roundPoints = 0; t.streak = 0; t.streakCountedThisRound = false; });
+      renderTeams();
+    });
+
+    renderTeams();
+
+    // ---------- Event listenery UI ----------
+    loadBtn.addEventListener('click', () => {
+      const id = extractPlaylistId(playlistInput.value);
+      if (!id) {
+        showStatus(setupStatus, 'Nie rozpoznano ID playlisty. Wklej pełny link (z "list=...") albo samo ID playlisty.', 'error');
+        return;
+      }
+
+      clearStatus(setupStatus);
+      showStatus(setupStatus, 'Wczytywanie playlisty…', 'info');
+      playerReady = false;
+      gameSection.style.display = 'none';
+      pendingPlaylistId = id;
+
+      if (window.YT && window.YT.Player) {
+        createPlayer(id);
+      } else {
+        loadYouTubeApiScript();
+      }
+    });
+
+    changePlaylistBtn.addEventListener('click', () => {
+      setupForm.style.display = 'block';
+      loadedBar.style.display = 'none';
+      playlistInput.focus();
+      playlistInput.select();
+    });
+
+    nextBtn.addEventListener('click', goNext);
+    prevBtn.addEventListener('click', goPrevious);
+    replayBtn.addEventListener('click', replaySame);
+    revealBtn.addEventListener('click', toggleReveal);
+    triviaBtn.addEventListener('click', toggleTrivia);
+    startStopBtn.addEventListener('click', toggleStartStop);
+    resetGameBtn.addEventListener('click', resetGame);
+
+    // ---------- Skróty klawiszowe ----------
+    document.addEventListener('keydown', function (e) {
+      const activeTag = document.activeElement ? document.activeElement.tagName : '';
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
+      if (e.code === 'Escape' || e.code === 'Backspace') {
+        e.preventDefault();
+        stopAllSoundboardSounds();
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleStartStop();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        goNext();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        goPrevious();
+      } else if (['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4'].includes(e.code)) {
+        e.preventDefault();
+        const teamIndex = parseInt(e.code.slice(-1), 10) - 1;
+        const team = teams[teamIndex];
+        if (team) applyScoreDelta(team, 1, team.scoreEl);
+      }
+    });
+
+    loadYouTubeApiScript();
+  </script>
+</body>
+</html>
