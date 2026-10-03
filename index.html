@@ -772,6 +772,10 @@
           <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/bruh/embed/" frameborder="0" scrolling="no"></iframe></div>
         </div>
         <div class="soundboard-item">
+          <div class="soundboard-caption">Sad violin</div>
+          <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/sad-violin-the-meme-one/embed/" frameborder="0" scrolling="no"></iframe></div>
+        </div>
+        <div class="soundboard-item">
           <div class="soundboard-caption">Nie wiem: papież</div>
           <div class="soundboard-embed"><iframe width="110" height="200" src="https://www.myinstants.com/instant/nie-wiem-papiez-51946/embed/" frameborder="0" scrolling="no"></iframe></div>
         </div>
@@ -792,6 +796,7 @@
     let currentSeekTime = null;
     let pendingKnownSeekTime = null;
     let answerVisible = false;
+    let answerRetryTimer = null;
     let triviaVisible = false;
     let awaitingFirstPlay = false;
     let readyTimeoutHandle = null;
@@ -1223,7 +1228,7 @@
       revealBtn.disabled = false;
       triviaBtn.disabled = false;
 
-      if (answerVisible) renderAnswerNow();
+      showAnswerWhenReady();
       if (triviaVisible) renderTriviaNow();
     }
 
@@ -1281,12 +1286,11 @@
       currentSeekTime = knownSeekTime;
       pendingKnownSeekTime = knownSeekTime;
 
-      // Jeśli tryb "pokaż odpowiedź"/"ciekawostka" jest włączony, zostaje
-      // włączony także po zmianie utworu — treść odświeży finishCue().
-      if (!answerVisible) {
-        resetAnswerCard();
-        playerOverlay.classList.remove('hidden');
-      }
+      // Tytuł nowego utworu pojawi się sam w finishCue(). Do tego czasu nie zostawiamy
+      // nazwy poprzedniej piosenki.
+      if (answerRetryTimer) clearTimeout(answerRetryTimer);
+      resetAnswerCard('Wczytuję tytuł…');
+      playerOverlay.classList.remove('hidden');
       if (!triviaVisible) {
         resetTriviaCard();
       }
@@ -1420,7 +1424,9 @@
       // Przerwana runda nie liczy się ani na plus, ani na minus serii.
       teams.forEach(function (t) { t.roundPoints = 0; t.streakCountedThisRound = false; });
 
+      if (answerRetryTimer) clearTimeout(answerRetryTimer);
       resetAnswerCard();
+      revealBtn.textContent = '👁 Odpowiedź';
       resetTriviaCard();
       playerOverlay.classList.remove('hidden');
       timerBar.style.width = '0%';
@@ -1436,33 +1442,53 @@
       showStatus(setupStatus, 'Gra zresetowana — pula utworów znów pełna.', 'info');
     }
 
-    function resetAnswerCard() {
+    function resetAnswerCard(message) {
       answerCard.className = 'answer-card placeholder';
-      answerCard.textContent = 'Fragment jeszcze nie odsłuchany';
+      answerCard.textContent = message || 'Fragment jeszcze nie odsłuchany';
     }
 
     function renderAnswerNow() {
       let data = {};
       try { data = player.getVideoData() || {}; } catch (e) {}
-      const title = data.title || '(nieznany tytuł)';
-      const author = data.author || '';
+      const title = (data.title || '').trim();
+      const author = (data.author || '').trim();
+      if (!title) return false;
       answerCard.className = 'answer-card';
       answerCard.innerHTML = '<div class="answer-title">' + escapeHtml(title) + '</div>' +
         (author ? '<div>' + escapeHtml(author) + '</div>' : '');
+      return true;
     }
 
-    // Odpowiedź to teraz przełącznik trwały — zmiana utworu jej nie chowa,
-    // dopóki host sam nie kliknie "Ukryj odpowiedź".
+    // Tytuł pokazuje się sam, gdy utwór jest gotowy. Przycisk tylko go chowa na tę rundę.
+    function showAnswerWhenReady() {
+      const roundIndex = currentIndex;
+      answerVisible = true;
+      revealBtn.textContent = '🙈 Ukryj';
+      if (answerRetryTimer) clearTimeout(answerRetryTimer);
+      let tries = 0;
+      function attempt() {
+        if (currentIndex !== roundIndex || !answerVisible) return;
+        if (renderAnswerNow()) return;
+        tries++;
+        if (tries >= 10) {
+          answerCard.className = 'answer-card';
+          answerCard.innerHTML = '<div class="answer-title">(nieznany tytuł)</div>';
+          return;
+        }
+        answerRetryTimer = setTimeout(attempt, 200);
+      }
+      attempt();
+    }
+
     function toggleReveal() {
       if (revealBtn.disabled || currentIndex === null) return;
       answerVisible = !answerVisible;
       if (answerVisible) {
-        renderAnswerNow();
-        playerOverlay.classList.add('hidden');
+        if (!renderAnswerNow()) showAnswerWhenReady();
         revealBtn.textContent = '🙈 Ukryj';
       } else {
-        resetAnswerCard();
-        playerOverlay.classList.remove('hidden');
+        if (answerRetryTimer) clearTimeout(answerRetryTimer);
+        resetAnswerCard('Tytuł ukryty');
         revealBtn.textContent = '👁 Odpowiedź';
       }
     }
